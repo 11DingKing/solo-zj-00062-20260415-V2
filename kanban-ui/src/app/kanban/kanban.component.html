@@ -1,0 +1,104 @@
+<div class="page-container">
+  <div class="page-title">
+    <h1>{{kanban?.title}}</h1>
+  </div>
+  <div class="toolbar">
+    <div class="search-container">
+      <mat-form-field class="search-field">
+        <input matInput placeholder="Search tasks by title..." 
+               [(ngModel)]="searchKeyword" 
+               (ngModelChange)="onSearchChange()">
+        <mat-icon matSuffix>search</mat-icon>
+      </mat-form-field>
+    </div>
+    <button mat-raised-button (click)="openDialogForNewTask()">+ Create Task</button>
+  </div>
+  <div class="kanban-board">
+    <div class="list-container">
+        <h2>To do</h2>
+      <div
+        cdkDropList
+        id="todo"
+        [cdkDropListData]="todos"
+        [cdkDropListConnectedTo]="['inpro', 'done']"
+        class="board-list"
+        (cdkDropListDropped)="drop($event)">
+        <div class="sticky-note" *ngFor="let task of todos" cdkDrag
+         [style.background-color]="task.color"
+         [class.overdue]="isOverdue(task.dueDate)"
+         (dblclick)="openTaskDialog($event)"
+         id="{{task.id}}">
+          <div class="task-content">
+            <span class="task-title">{{task.title}}</span>
+            <span *ngIf="getRemainingDays(task.dueDate) !== null" 
+                  class="due-date"
+                  [class.overdue-text]="isOverdue(task.dueDate)">
+              {{getRemainingDays(task.dueDate) < 0 ? 'Overdue: ' + Math.abs(getRemainingDays(task.dueDate)) + ' days' : getRemainingDays(task.dueDate) + ' days left'}}
+            </span>
+          </div>
+          <button mat-icon-button class="delete-btn" (click)="$event.stopPropagation(); deleteTask(task)">
+            <mat-icon>delete</mat-icon>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="list-container">
+      <h2>In Progress</h2>
+      <div
+      cdkDropList
+      id="inpro"
+      [cdkDropListData]="inprogress"
+      [cdkDropListConnectedTo]="['todo', 'done']"
+      class="board-list"
+      (cdkDropListDropped)="drop($event)">
+        <div class="sticky-note" *ngFor="let task of inprogress" cdkDrag
+        [style.background-color]="task.color"
+        [class.overdue]="isOverdue(task.dueDate)"
+        (dblclick)="openTaskDialog($event)"
+         id="{{task.id}}">
+          <div class="task-content">
+            <span class="task-title">{{task.title}}</span>
+            <span *ngIf="getRemainingDays(task.dueDate) !== null" 
+                  class="due-date"
+                  [class.overdue-text]="isOverdue(task.dueDate)">
+              {{getRemainingDays(task.dueDate) < 0 ? 'Overdue: ' + Math.abs(getRemainingDays(task.dueDate)) + ' days' : getRemainingDays(task.dueDate) + ' days left'}}
+            </span>
+          </div>
+          <button mat-icon-button class="delete-btn" (click)="$event.stopPropagation(); deleteTask(task)">
+            <mat-icon>delete</mat-icon>
+          </button>
+        </div>
+      </div>
+  </div>
+
+    <div class="list-container">
+        <h2>Done</h2>
+        <div
+        cdkDropList
+        id="done"
+        [cdkDropListData]="dones"
+        [cdkDropListConnectedTo]="['todo', 'inpro']"
+        class="board-list"
+        (cdkDropListDropped)="drop($event)">
+          <div class="sticky-note" *ngFor="let task of dones" cdkDrag
+          [style.background-color]="task.color"
+          [class.overdue]="isOverdue(task.dueDate)"
+          (dblclick)="openTaskDialog($event)"
+          id="{{task.id}}">
+            <div class="task-content">
+              <span class="task-title">{{task.title}}</span>
+              <span *ngIf="getRemainingDays(task.dueDate) !== null" 
+                    class="due-date"
+                    [class.overdue-text]="isOverdue(task.dueDate)">
+                {{getRemainingDays(task.dueDate) < 0 ? 'Overdue: ' + Math.abs(getRemainingDays(task.dueDate)) + ' days' : getRemainingDays(task.dueDate) + ' days left'}}
+              </span>
+            </div>
+            <button mat-icon-button class="delete-btn" (click)="$event.stopPropagation(); deleteTask(task)">
+              <mat-icon>delete</mat-icon>
+            </button>
+          </div>
+        </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,69 @@
+<div class="dialog-title">
+  <h1 mat-dialog-title>{{ dialogTitle }}</h1> 
+</div>
+
+
+<mat-dialog-content [formGroup]="form" class="dialog-content">
+
+  <mat-form-field>
+      <input matInput
+              placeholder="Title"
+             formControlName="title"
+             class="task-title">
+  </mat-form-field>
+
+  <mat-form-field>
+      <mat-select placeholder="Select color"
+          formControlName="color">
+          <mat-option value="#feff9c">
+              YELLOW</mat-option>
+          <mat-option value="#7afcff">
+              BLUE</mat-option>
+          <mat-option value="#ff7eb9">
+              PINK</mat-option>
+      </mat-select>
+  </mat-form-field>
+
+  <mat-form-field>
+    <input matInput [matDatepicker]="picker" placeholder="Due Date" formControlName="dueDate">
+    <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+    <mat-datepicker #picker></mat-datepicker>
+  </mat-form-field>
+
+  <mat-form-field>
+    <textarea matInput placeholder="Description"
+        formControlName="description" class="description-area">
+    </textarea>
+  </mat-form-field>
+
+  <div *ngIf="task.id" class="comments-section">
+    <h3>Comments</h3>
+    
+    <div class="add-comment">
+      <mat-form-field class="author-field">
+        <input matInput placeholder="Your name" [(ngModel)]="commentAuthor" [ngModelOptions]="{standalone: true}">
+      </mat-form-field>
+      <mat-form-field class="comment-field">
+        <textarea matInput placeholder="Write a comment..." [(ngModel)]="newComment" [ngModelOptions]="{standalone: true}"></textarea>
+      </mat-form-field>
+      <button mat-raised-button color="primary" (click)="addComment()">Add Comment</button>
+    </div>
+
+    <div class="comments-list">
+      <div *ngFor="let comment of comments" class="comment-item">
+        <div class="comment-header">
+          <span class="comment-author">{{ comment.author || 'Anonymous' }}</span>
+          <span class="comment-date">{{ formatDate(comment.createdAt) }}</span>
+        </div>
+        <div class="comment-content">{{ comment.content }}</div>
+      </div>
+    </div>
+  </div>
+</mat-dialog-content>
+
+<mat-dialog-actions>
+  <button *ngIf="task.id" class="mat-raised-button mat-warn" (click)="deleteTask()">Delete</button>
+  <span class="spacer"></span>
+  <button class="mat-raised-button"(click)="close()">Close</button>
+  <button class="mat-raised-button mat-primary"(click)="save()">Save</button>
+</mat-dialog-actions>

@@ -89,3 +89,130 @@
 .spacer {
     flex: 1 1 auto;
 }
+
+.dialog-title {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.status-badge {
+    font-size: 12px;
+    padding: 4px 12px;
+    border-radius: 16px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.status-badge.TODO {
+    background-color: #fff3e0;
+    color: #ef6c00;
+}
+
+.status-badge.INPROGRESS {
+    background-color: #e3f2fd;
+    color: #1565c0;
+}
+
+.status-badge.DONE {
+    background-color: #e8f5e9;
+    color: #2e7d32;
+}
+
+.status-badge.ARCHIVED {
+    background-color: #f5f5f5;
+    color: #757575;
+}
+
+.status-actions {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid #e0e0e0;
+}
+
+.status-actions h3 {
+    margin: 0 0 15px 0;
+    font-size: 16px;
+    color: #333;
+}
+
+.status-buttons {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.history-section {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid #e0e0e0;
+}
+
+.history-section h3 {
+    margin: 0 0 15px 0;
+    font-size: 16px;
+    color: #333;
+}
+
+.history-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    max-height: 250px;
+    overflow-y: auto;
+}
+
+.history-item {
+    background-color: #fafafa;
+    border-radius: 8px;
+    padding: 12px;
+    border-left: 3px solid #1976d2;
+}
+
+.history-timestamp {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: #888;
+    margin-bottom: 8px;
+}
+
+.history-transition {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.status-label {
+    font-size: 13px;
+    padding: 3px 10px;
+    border-radius: 4px;
+    font-weight: 500;
+}
+
+.status-label.TODO {
+    background-color: #fff3e0;
+    color: #ef6c00;
+}
+
+.status-label.INPROGRESS {
+    background-color: #e3f2fd;
+    color: #1565c0;
+}
+
+.status-label.DONE {
+    background-color: #e8f5e9;
+    color: #2e7d32;
+}
+
+.status-label.ARCHIVED {
+    background-color: #f5f5f5;
+    color: #757575;
+}
+
+.history-by {
+    font-size: 12px;
+    color: #666;
+    margin-top: 6px;
+}

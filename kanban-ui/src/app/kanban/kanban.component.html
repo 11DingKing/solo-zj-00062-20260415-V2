@@ -20,7 +20,7 @@
         cdkDropList
         id="todo"
         [cdkDropListData]="todos"
-        [cdkDropListConnectedTo]="['inpro', 'done']"
+        [cdkDropListConnectedTo]="['inpro']"
         class="board-list"
         (cdkDropListDropped)="drop($event)">
         <div class="sticky-note" *ngFor="let task of todos" cdkDrag
@@ -36,7 +36,9 @@
               {{getRemainingDays(task.dueDate) < 0 ? 'Overdue: ' + Math.abs(getRemainingDays(task.dueDate)) + ' days' : getRemainingDays(task.dueDate) + ' days left'}}
             </span>
           </div>
-          <button mat-icon-button class="delete-btn" (click)="$event.stopPropagation(); deleteTask(task)">
+          <button mat-icon-button class="delete-btn" 
+                  *ngIf="canDeleteTask(task)"
+                  (click)="$event.stopPropagation(); deleteTask(task)">
             <mat-icon>delete</mat-icon>
           </button>
         </div>
@@ -65,7 +67,9 @@
               {{getRemainingDays(task.dueDate) < 0 ? 'Overdue: ' + Math.abs(getRemainingDays(task.dueDate)) + ' days' : getRemainingDays(task.dueDate) + ' days left'}}
             </span>
           </div>
-          <button mat-icon-button class="delete-btn" (click)="$event.stopPropagation(); deleteTask(task)">
+          <button mat-icon-button class="delete-btn" 
+                  *ngIf="canDeleteTask(task)"
+                  (click)="$event.stopPropagation(); deleteTask(task)">
             <mat-icon>delete</mat-icon>
           </button>
         </div>
@@ -78,7 +82,7 @@
         cdkDropList
         id="done"
         [cdkDropListData]="dones"
-        [cdkDropListConnectedTo]="['todo', 'inpro']"
+        [cdkDropListConnectedTo]="['inpro']"
         class="board-list"
         (cdkDropListDropped)="drop($event)">
           <div class="sticky-note" *ngFor="let task of dones" cdkDrag
@@ -94,9 +98,33 @@
                 {{getRemainingDays(task.dueDate) < 0 ? 'Overdue: ' + Math.abs(getRemainingDays(task.dueDate)) + ' days' : getRemainingDays(task.dueDate) + ' days left'}}
               </span>
             </div>
-            <button mat-icon-button class="delete-btn" (click)="$event.stopPropagation(); deleteTask(task)">
-              <mat-icon>delete</mat-icon>
+            <button mat-icon-button class="archive-btn" 
+                    *ngIf="canArchiveTask(task)"
+                    (click)="$event.stopPropagation(); archiveTask(task)"
+                    matTooltip="Archive task">
+              <mat-icon>archive</mat-icon>
             </button>
+          </div>
+        </div>
+    </div>
+
+    <div class="list-container" *ngIf="archived.length > 0">
+        <h2>Archived</h2>
+        <div
+        cdkDropList
+        id="archived"
+        [cdkDropListData]="archived"
+        [cdkDropListConnectedTo]="[]"
+        class="board-list">
+          <div class="sticky-note archived-task" *ngFor="let task of archived" cdkDrag
+          [style.background-color]="task.color"
+          [class.overdue]="isOverdue(task.dueDate)"
+          (dblclick)="openTaskDialog($event)"
+          id="{{task.id}}">
+            <div class="task-content">
+              <span class="task-title">{{task.title}}</span>
+              <span class="archived-badge">Archived</span>
+            </div>
           </div>
         </div>
     </div>

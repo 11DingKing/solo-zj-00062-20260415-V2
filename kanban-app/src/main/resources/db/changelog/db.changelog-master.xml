@@ -60,5 +60,14 @@
         <comment>Create comment table</comment>
     </changeSet>
 
+    <changeSet id="7" author="Developer">
+        <sqlFile path="07_create_task_history_table.sql"
+                 relativeToChangelogFile="true"
+                 splitStatements="true"
+                 stripComments="true"/>
+
+        <comment>Create task_history table for status change tracking</comment>
+    </changeSet>
+
 </databaseChangeLog>
 

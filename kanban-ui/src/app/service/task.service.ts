@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { Task } from '../model/task/task';
+import { Task, TaskHistory } from '../model/task/task';
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { environment } from 'src/environments/environment';
 import { Comment } from '../model/comment/comment';
@@ -31,6 +31,14 @@ export class TaskService {
 
   deleteTask(id: number): Observable<any> {
     return this.http.delete(this.kanbanAppUrl + '/tasks/' + id);
+  }
+
+  archiveTask(id: number): Observable<Task> {
+    return this.http.put<Task>(this.kanbanAppUrl + '/tasks/' + id + '/archive', {});
+  }
+
+  getTaskHistory(id: number): Observable<TaskHistory[]> {
+    return this.http.get<TaskHistory[]>(this.kanbanAppUrl + '/tasks/' + id + '/history');
   }
 
   getCommentsByTaskId(taskId: number): Observable<Comment[]> {

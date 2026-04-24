@@ -1,7 +1,10 @@
 package com.wkrzywiec.medium.kanban.controller;
 
+import com.wkrzywiec.medium.kanban.exception.IllegalStatusTransitionException;
 import com.wkrzywiec.medium.kanban.model.Task;
 import com.wkrzywiec.medium.kanban.model.TaskDTO;
+import com.wkrzywiec.medium.kanban.model.TaskDetailDTO;
+import com.wkrzywiec.medium.kanban.model.TaskHistory;
 import com.wkrzywiec.medium.kanban.service.TaskService;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
@@ -9,6 +12,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Optional;
 
 @RestController
@@ -32,14 +36,23 @@ public class TaskController {
     }
 
     @GetMapping("/{id}")
-    @ApiOperation(value="Find a task info by its id", response = Task.class)
+    @ApiOperation(value="Find a task info by its id", response = TaskDetailDTO.class)
     public ResponseEntity<?> getTask(@PathVariable Long id){
         try {
             Optional<Task> optTask = taskService.getTaskById(id);
             if (optTask.isPresent()) {
-                return new ResponseEntity<>(
-                        optTask.get(),
-                        HttpStatus.OK);
+                Task task = optTask.get();
+                List<TaskHistory> history = taskService.getTaskHistory(task);
+                TaskDetailDTO detail = TaskDetailDTO.builder()
+                        .id(task.getId())
+                        .title(task.getTitle())
+                        .description(task.getDescription())
+                        .color(task.getColor())
+                        .status(task.getStatus())
+                        .dueDate(task.getDueDate())
+                        .history(history)
+                        .build();
+                return new ResponseEntity<>(detail, HttpStatus.OK);
             } else {
                 return noTaskFoundResponse(id);
             }
@@ -59,6 +72,22 @@ public class TaskController {
                         HttpStatus.OK);
             } else {
                 return new ResponseEntity<>("No task found with a title: " + title, HttpStatus.NOT_FOUND);
+            }
+        } catch (Exception e) {
+            return errorResponse();
+        }
+    }
+
+    @GetMapping("/{id}/history")
+    @ApiOperation(value="Get task status change history", response = TaskHistory.class, responseContainer = "List")
+    public ResponseEntity<?> getTaskHistory(@PathVariable Long id){
+        try {
+            Optional<Task> optTask = taskService.getTaskById(id);
+            if (optTask.isPresent()) {
+                List<TaskHistory> history = taskService.getTaskHistory(optTask.get());
+                return new ResponseEntity<>(history, HttpStatus.OK);
+            } else {
+                return noTaskFoundResponse(id);
             }
         } catch (Exception e) {
             return errorResponse();
@@ -89,6 +118,27 @@ public class TaskController {
             } else {
                 return noTaskFoundResponse(id);
             }
+        } catch (IllegalStatusTransitionException e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
+        } catch (Exception e) {
+            return errorResponse();
+        }
+    }
+
+    @PutMapping("/{id}/archive")
+    @ApiOperation(value="Archive a task with specific id", response = Task.class)
+    public ResponseEntity<?> archiveTask(@PathVariable Long id){
+        try {
+            Optional<Task> optTask = taskService.getTaskById(id);
+            if (optTask.isPresent()) {
+                return new ResponseEntity<>(
+                        taskService.archiveTask(optTask.get()),
+                        HttpStatus.OK);
+            } else {
+                return noTaskFoundResponse(id);
+            }
+        } catch (IllegalStatusTransitionException e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
         } catch (Exception e) {
             return errorResponse();
         }
@@ -105,9 +155,16 @@ public class TaskController {
             } else {
                 return noTaskFoundResponse(id);
             }
+        } catch (IllegalStatusTransitionException e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
         } catch (Exception e) {
             return errorResponse();
         }
+    }
+
+    @ExceptionHandler(IllegalStatusTransitionException.class)
+    public ResponseEntity<String> handleIllegalStatusTransition(IllegalStatusTransitionException e) {
+        return new ResponseEntity<>(e.getMessage(), HttpStatus.BAD_REQUEST);
     }
 
     private ResponseEntity<String> errorResponse(){
@@ -117,5 +174,4 @@ public class TaskController {
     private ResponseEntity<String> noTaskFoundResponse(Long id){
         return new ResponseEntity<>("No task found with id: " + id, HttpStatus.NOT_FOUND);
     }
-
 }

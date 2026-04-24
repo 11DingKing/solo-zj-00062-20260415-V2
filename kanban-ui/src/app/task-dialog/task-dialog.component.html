@@ -1,5 +1,8 @@
 <div class="dialog-title">
   <h1 mat-dialog-title>{{ dialogTitle }}</h1> 
+  <div *ngIf="task.id" class="status-badge" [ngClass]="task.status">
+    {{ getStatusDisplay(task.status) }}
+  </div>
 </div>
 
 
@@ -9,12 +12,14 @@
       <input matInput
               placeholder="Title"
              formControlName="title"
-             class="task-title">
+             class="task-title"
+             [disabled]="isTaskImmutable()">
   </mat-form-field>
 
   <mat-form-field>
       <mat-select placeholder="Select color"
-          formControlName="color">
+          formControlName="color"
+          [disabled]="isTaskImmutable()">
           <mat-option value="#feff9c">
               YELLOW</mat-option>
           <mat-option value="#7afcff">
@@ -25,16 +30,39 @@
   </mat-form-field>
 
   <mat-form-field>
-    <input matInput [matDatepicker]="picker" placeholder="Due Date" formControlName="dueDate">
+    <input matInput [matDatepicker]="picker" placeholder="Due Date" formControlName="dueDate"
+           [disabled]="isTaskImmutable()">
     <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
     <mat-datepicker #picker></mat-datepicker>
   </mat-form-field>
 
   <mat-form-field>
     <textarea matInput placeholder="Description"
-        formControlName="description" class="description-area">
+        formControlName="description" class="description-area"
+        [disabled]="isTaskImmutable()">
     </textarea>
   </mat-form-field>
+
+  <div *ngIf="task.id && !isTaskImmutable()" class="status-actions">
+    <h3>Change Status</h3>
+    <div class="status-buttons">
+      <button mat-raised-button color="primary" 
+              *ngIf="getAvailableTransitions().includes(taskStatus.IN_PROGRESS)"
+              (click)="transitionToStatus(taskStatus.IN_PROGRESS)">
+        Start (In Progress)
+      </button>
+      <button mat-raised-button 
+              *ngIf="getAvailableTransitions().includes(taskStatus.TODO)"
+              (click)="transitionToStatus(taskStatus.TODO)">
+        Move to To Do
+      </button>
+      <button mat-raised-button color="accent" 
+              *ngIf="getAvailableTransitions().includes(taskStatus.DONE)"
+              (click)="transitionToStatus(taskStatus.DONE)">
+        Mark as Done
+      </button>
+    </div>
+  </div>
 
   <div *ngIf="task.id" class="comments-section">
     <h3>Comments</h3>
@@ -46,7 +74,7 @@
       <mat-form-field class="comment-field">
         <textarea matInput placeholder="Write a comment..." [(ngModel)]="newComment" [ngModelOptions]="{standalone: true}"></textarea>
       </mat-form-field>
-      <button mat-raised-button color="primary" (click)="addComment()">Add Comment</button>
+      <button mat-raised-button color="primary" (click)="addComment()" [disabled]="isTaskImmutable()">Add Comment</button>
     </div>
 
     <div class="comments-list">
@@ -59,11 +87,40 @@
       </div>
     </div>
   </div>
+
+  <div *ngIf="task.id && history.length > 0" class="history-section">
+    <h3>Status History</h3>
+    <div class="history-list">
+      <div *ngFor="let record of history" class="history-item">
+        <div class="history-timestamp">
+          <mat-icon>schedule</mat-icon>
+          {{ formatDate(record.changedAt) }}
+        </div>
+        <div class="history-transition">
+          <span class="status-label" [ngClass]="record.oldStatus">
+            {{ getStatusDisplay(record.oldStatus) }}
+          </span>
+          <mat-icon>arrow_forward</mat-icon>
+          <span class="status-label" [ngClass]="record.newStatus">
+            {{ getStatusDisplay(record.newStatus) }}
+          </span>
+        </div>
+        <div class="history-by">
+          by {{ record.changedBy }}
+        </div>
+      </div>
+    </div>
+  </div>
 </mat-dialog-content>
 
 <mat-dialog-actions>
-  <button *ngIf="task.id" class="mat-raised-button mat-warn" (click)="deleteTask()">Delete</button>
+  <button *ngIf="canArchive()" class="mat-raised-button" (click)="archiveTask()">
+    <mat-icon>archive</mat-icon> Archive
+  </button>
+  <button *ngIf="canDelete()" class="mat-raised-button mat-warn" (click)="deleteTask()">
+    <mat-icon>delete</mat-icon> Delete
+  </button>
   <span class="spacer"></span>
-  <button class="mat-raised-button"(click)="close()">Close</button>
-  <button class="mat-raised-button mat-primary"(click)="save()">Save</button>
+  <button class="mat-raised-button" (click)="close()">Close</button>
+  <button *ngIf="!isTaskImmutable()" class="mat-raised-button mat-primary" (click)="save()">Save</button>
 </mat-dialog-actions>

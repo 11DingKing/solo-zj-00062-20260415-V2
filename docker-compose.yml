@@ -1,17 +1,23 @@
-version: '3'
+version: '3.8'
 services:
 
   kanban-postgres:
-    image: "postgres:9.6-alpine"
+    image: "postgres:15-alpine"
     container_name: kanban-postgres
     volumes:
       - kanban-data:/var/lib/postgresql/data
     ports:
-      - 5432:5432
+      - "5432:5432"
     environment:
       - POSTGRES_DB=kanban
       - POSTGRES_USER=kanban
       - POSTGRES_PASSWORD=kanban
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U kanban -d kanban"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
 
   kanban-app:
     build: ./kanban-app
@@ -22,16 +28,17 @@ services:
       - POSTGRES_USER=kanban
       - POSTGRES_PASSWORD=kanban
     ports:
-      - 8080:8080
-    links:
-      - kanban-postgres
+      - "8080:8080"
+    depends_on:
+      kanban-postgres:
+        condition: service_healthy
 
   kanban-ui:
     build: ./kanban-ui
     container_name: kanban-ui
     ports:
-      - 4200:80
-    links:
+      - "4200:80"
+    depends_on:
       - kanban-app
 
 

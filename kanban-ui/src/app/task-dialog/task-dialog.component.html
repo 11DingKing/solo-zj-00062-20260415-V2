@@ -2,6 +2,7 @@
   <h1 mat-dialog-title>{{ dialogTitle }}</h1> 
   <div *ngIf="task.id" class="status-badge" [ngClass]="task.status">
     {{ getStatusDisplay(task.status) }}
+    <span *ngIf="isTaskImmutable()" class="locked-indicator"> (Locked)</span>
   </div>
 </div>
 
@@ -106,7 +107,8 @@
           </span>
         </div>
         <div class="history-by">
-          by {{ record.changedBy }}
+          <mat-icon>person</mat-icon>
+          <span>{{ getOperatorDisplay(record.changedBy) }}</span>
         </div>
       </div>
     </div>
@@ -114,9 +116,6 @@
 </mat-dialog-content>
 
 <mat-dialog-actions>
-  <button *ngIf="canArchive()" class="mat-raised-button" (click)="archiveTask()">
-    <mat-icon>archive</mat-icon> Archive
-  </button>
   <button *ngIf="canDelete()" class="mat-raised-button mat-warn" (click)="deleteTask()">
     <mat-icon>delete</mat-icon> Delete
   </button>

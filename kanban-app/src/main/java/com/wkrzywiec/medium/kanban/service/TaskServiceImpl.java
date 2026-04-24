@@ -68,7 +68,10 @@ public class TaskServiceImpl implements TaskService {
         Task savedTask = taskRepository.save(updatedTask);
 
         if (oldStatus != null && !oldStatus.equals(savedTask.getStatus())) {
-            createTaskHistory(oldStatus, savedTask.getStatus(), savedTask, "User");
+            String changedBy = Optional.ofNullable(newTaskDTO.getChangedBy())
+                    .filter(s -> !s.trim().isEmpty())
+                    .orElse("Anonymous");
+            createTaskHistory(oldStatus, savedTask.getStatus(), savedTask, changedBy);
         }
 
         return savedTask;
@@ -79,7 +82,7 @@ public class TaskServiceImpl implements TaskService {
     public void deleteTask(Task task) {
         if (task.getStatus() != null && task.getStatus().isDoneOrArchived()) {
             throw new IllegalStatusTransitionException(
-                    String.format("Cannot delete task with status %s. Please archive it instead.", task.getStatus())
+                    String.format("Cannot delete task with status %s. Completed tasks are locked and cannot be deleted.", task.getStatus())
             );
         }
         taskRepository.delete(task);
@@ -88,29 +91,9 @@ public class TaskServiceImpl implements TaskService {
     @Override
     @Transactional
     public Task archiveTask(Task task) {
-        TaskStatus oldStatus = task.getStatus();
-
-        if (oldStatus == null) {
-            throw new IllegalStatusTransitionException("Task status is null");
-        }
-
-        if (oldStatus.isImmutable()) {
-            throw new IllegalStatusTransitionException(
-                    String.format("Task is already %s, cannot be modified", oldStatus)
-            );
-        }
-
-        if (!oldStatus.canTransitionTo(TaskStatus.ARCHIVED)) {
-            throw new IllegalStatusTransitionException(
-                    String.format("Cannot archive task from status %s. Only DONE tasks can be archived.", oldStatus)
-            );
-        }
-
-        task.setStatus(TaskStatus.ARCHIVED);
-        Task savedTask = taskRepository.save(task);
-        createTaskHistory(oldStatus, TaskStatus.ARCHIVED, savedTask, "User");
-
-        return savedTask;
+        throw new IllegalStatusTransitionException(
+                "Archive functionality is disabled. DONE tasks are locked and cannot be modified."
+        );
     }
 
     @Override

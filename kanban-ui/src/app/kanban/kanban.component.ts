@@ -20,7 +20,6 @@ export class KanbanComponent implements OnInit {
   todos: Task[] = [];
   inprogress: Task[] = [];
   dones: Task[] = [];
-  archived: Task[] = [];
   searchKeyword: string = '';
 
   constructor(
@@ -52,12 +51,14 @@ export class KanbanComponent implements OnInit {
         const currentStatus = response.status;
         
         if (isImmutable(currentStatus)) {
-          this.showError('Archived tasks cannot be modified');
+          this.showError('Completed tasks are locked and cannot be modified.');
           return;
         }
 
         if (targetStatus && canTransitionTo(currentStatus, targetStatus)) {
-          this.updateTaskStatusAfterDragDrop(event);
+          this.promptForOperatorName((operatorName) => {
+            this.updateTaskStatusAfterDragDrop(event, operatorName);
+          });
         } else {
           this.showError(`Cannot transition from ${currentStatus} to ${targetStatus || 'unknown'}`);
         }
@@ -68,6 +69,11 @@ export class KanbanComponent implements OnInit {
     );
   }
 
+  private promptForOperatorName(callback: (name: string) => void): void {
+    const name = prompt('Enter your name for the status change record:');
+    callback(name || 'Anonymous');
+  }
+
   private getStatusFromContainerId(containerId: string): string | null {
     switch (containerId) {
       case 'todo':
@@ -76,8 +82,6 @@ export class KanbanComponent implements OnInit {
         return TASK_STATUS.IN_PROGRESS;
       case 'done':
         return TASK_STATUS.DONE;
-      case 'archived':
-        return TASK_STATUS.ARCHIVED;
       default:
         return null;
     }
@@ -99,7 +103,7 @@ export class KanbanComponent implements OnInit {
 
   deleteTask(task: Task): void {
     if (isDoneOrArchived(task.status)) {
-      this.showError('Cannot delete completed or archived tasks. Use archive instead.');
+      this.showError('Cannot delete completed tasks. Completed tasks are locked.');
       return;
     }
 
@@ -116,34 +120,8 @@ export class KanbanComponent implements OnInit {
     }
   }
 
-  archiveTask(task: Task): void {
-    if (task.status !== TASK_STATUS.DONE) {
-      this.showError('Only DONE tasks can be archived');
-      return;
-    }
-
-    if (confirm('Are you sure you want to archive this task?')) {
-      this.taskService.archiveTask(task.id).subscribe(
-        response => {
-          const index = this.allTasks.findIndex(t => t.id === task.id);
-          if (index !== -1) {
-            this.allTasks[index] = response;
-          }
-          this.filterTasks();
-        },
-        error => {
-          this.showError('Failed to archive task: ' + (error.error || error.message));
-        }
-      );
-    }
-  }
-
   canDeleteTask(task: Task): boolean {
     return !isDoneOrArchived(task.status);
-  }
-
-  canArchiveTask(task: Task): boolean {
-    return task.status === TASK_STATUS.DONE;
   }
 
   onSearchChange(): void {
@@ -182,7 +160,6 @@ export class KanbanComponent implements OnInit {
     this.todos = kanban.tasks.filter(t=>t.status===TASK_STATUS.TODO);
     this.inprogress = kanban.tasks.filter(t=>t.status===TASK_STATUS.IN_PROGRESS);
     this.dones = kanban.tasks.filter(t=>t.status===TASK_STATUS.DONE);
-    this.archived = kanban.tasks.filter(t=>t.status===TASK_STATUS.ARCHIVED);
   }
 
   private filterTasks(): void {
@@ -198,30 +175,28 @@ export class KanbanComponent implements OnInit {
     this.todos = filteredTasks.filter(t=>t.status===TASK_STATUS.TODO);
     this.inprogress = filteredTasks.filter(t=>t.status===TASK_STATUS.IN_PROGRESS);
     this.dones = filteredTasks.filter(t=>t.status===TASK_STATUS.DONE);
-    this.archived = filteredTasks.filter(t=>t.status===TASK_STATUS.ARCHIVED);
   }
   
-  private updateTaskStatusAfterDragDrop(event: CdkDragDrop<string[], string[]>) {
+  private updateTaskStatusAfterDragDrop(event: CdkDragDrop<string[], string[]>, operatorName: string) {
     let taskId = event.item.element.nativeElement.id;
     let containerId = event.container.id;
 
     this.taskService.getTaskById(taskId).subscribe(
         response => {
-          this.updateTaskStatus(response, containerId);
+          this.updateTaskStatus(response, containerId, operatorName);
         }
     );
   }
 
-  private updateTaskStatus(task: Task, containerId: string): void {
+  private updateTaskStatus(task: Task, containerId: string, operatorName: string): void {
     if (containerId === 'todo'){
       task.status = TASK_STATUS.TODO
     } else if (containerId === 'inpro'){
       task.status = TASK_STATUS.IN_PROGRESS
     } else if (containerId === 'done') {
       task.status = TASK_STATUS.DONE
-    } else if (containerId === 'archived') {
-      task.status = TASK_STATUS.ARCHIVED
     }
+    task.changedBy = operatorName;
     this.taskService.updateTask(task).subscribe(
       response => {
         const index = this.allTasks.findIndex(t => t.id === task.id);
@@ -251,7 +226,7 @@ export class KanbanComponent implements OnInit {
     const dialogRef = this.dialog.open(TaskDialogComponent, dialogConfig);
     
     dialogRef.afterClosed().subscribe(result => {
-      if (result === 'deleted' || result === 'saved' || result === 'archived') {
+      if (result === 'deleted' || result === 'saved') {
         this.getKanban();
       }
     });

@@ -9,6 +9,7 @@ export class Task {
     status: string;
     dueDate: string;
     history?: TaskHistory[];
+    changedBy?: string;
 }
 
 export const TASK_STATUS = {
@@ -25,7 +26,7 @@ export function getAllowedTransitions(status: string): string[] {
         case TASK_STATUS.IN_PROGRESS:
             return [TASK_STATUS.TODO, TASK_STATUS.DONE];
         case TASK_STATUS.DONE:
-            return [TASK_STATUS.ARCHIVED];
+            return [];
         case TASK_STATUS.ARCHIVED:
             return [];
         default:
@@ -38,7 +39,7 @@ export function canTransitionTo(from: string, to: string): boolean {
 }
 
 export function isImmutable(status: string): boolean {
-    return status === TASK_STATUS.ARCHIVED;
+    return status === TASK_STATUS.DONE || status === TASK_STATUS.ARCHIVED;
 }
 
 export function isDoneOrArchived(status: string): boolean {

@@ -21,6 +21,7 @@ export class TaskDialogComponent implements OnInit {
   history: TaskHistory[] = [];
   newComment: string = '';
   commentAuthor: string = '';
+  statusOperatorName: string = '';
 
   form: FormGroup;
   taskStatus = TASK_STATUS;
@@ -113,7 +114,7 @@ export class TaskDialogComponent implements OnInit {
 
   deleteTask(): void {
     if (isDoneOrArchived(this.task.status)) {
-      alert('Cannot delete completed or archived tasks. Use archive instead.');
+      alert('Cannot delete completed tasks. Completed tasks are locked.');
       return;
     }
 
@@ -129,30 +130,8 @@ export class TaskDialogComponent implements OnInit {
     }
   }
 
-  archiveTask(): void {
-    if (this.task.status !== TASK_STATUS.DONE) {
-      alert('Only DONE tasks can be archived');
-      return;
-    }
-
-    if (confirm('Are you sure you want to archive this task?')) {
-      this.taskService.archiveTask(this.task.id).subscribe(
-        response => {
-          this.dialogRef.close('archived');
-        },
-        error => {
-          alert('Failed to archive task: ' + (error.error || error.message));
-        }
-      );
-    }
-  }
-
   canDelete(): boolean {
     return this.task.id && !isDoneOrArchived(this.task.status);
-  }
-
-  canArchive(): boolean {
-    return this.task.id && this.task.status === TASK_STATUS.DONE;
   }
 
   isTaskImmutable(): boolean {
@@ -170,7 +149,14 @@ export class TaskDialogComponent implements OnInit {
       return;
     }
 
-    const updatedTask = { ...this.task, status: targetStatus };
+    const operatorName = prompt('Enter your name for the status change record:', this.statusOperatorName);
+    if (operatorName === null) {
+      return;
+    }
+
+    this.statusOperatorName = operatorName || 'Anonymous';
+    
+    const updatedTask = { ...this.task, status: targetStatus, changedBy: this.statusOperatorName };
     this.taskService.updateTask(updatedTask).subscribe(
       response => {
         this.task = response;
@@ -202,6 +188,11 @@ export class TaskDialogComponent implements OnInit {
       default:
         return status;
     }
+  }
+
+  getOperatorDisplay(changedBy: string): string {
+    if (!changedBy) return 'System';
+    return changedBy;
   }
 
   close() {

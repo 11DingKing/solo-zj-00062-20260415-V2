@@ -16,7 +16,7 @@ public enum TaskStatus {
             case INPROGRESS:
                 return Arrays.asList(TODO, DONE);
             case DONE:
-                return Arrays.asList(ARCHIVED);
+                return Arrays.asList();
             case ARCHIVED:
                 return Arrays.asList();
             default:
@@ -29,7 +29,7 @@ public enum TaskStatus {
     }
 
     public boolean isImmutable() {
-        return this == ARCHIVED;
+        return this == DONE || this == ARCHIVED;
     }
 
     public boolean isDoneOrArchived() {

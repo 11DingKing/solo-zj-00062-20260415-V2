@@ -28,4 +28,7 @@ public class TaskDTO {
 
     @ApiModelProperty(position = 5)
     private LocalDate dueDate;
+
+    @ApiModelProperty(position = 6)
+    private String changedBy;
 }
